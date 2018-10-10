@@ -27,11 +27,11 @@ def main():
 
     db_config_file = ConfigParser.RawConfigParser()
     db_config_file.read(options.config_file)
-    db_user = db_config_file.get('Database', 'user')
-    db_pwd = db_config_file.get('Database', 'password')
-    db_host = db_config_file.get('Database', 'host')
-    db_name = db_config_file.get('Database', 'name')
-    db_connectionstring = db_config_file.get('Database', 'connectionstring')
+    db_user = db_config_file.get('database', 'user')
+    db_pwd = db_config_file.get('database', 'password')
+    db_host = db_config_file.get('database', 'host')
+    db_name = db_config_file.get('database', 'name')
+    db_connectionstring = db_config_file.get('database', 'connectionstring')
     db_obj = xeniaAlchemy()
     if (db_obj.connectDB(db_connectionstring, db_user, db_pwd, db_host, db_name, False) == True):
       logger.info("Succesfully connect to DB: %s at %s" % (db_name, db_host))
