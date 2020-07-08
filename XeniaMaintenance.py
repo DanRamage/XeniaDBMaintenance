@@ -70,11 +70,12 @@ def main():
         else:
             cursor = connection.cursor()
             vacuum_start_time = time.time()
-            cursor.execute("VACUUM ANALYSE multi_obs")
-            logger.info("VACUUMed in %f seconds" % (time.time() - vacuum_start_time))
+            #cursor.execute("VACUUM ANALYSE multi_obs")
+            cursor.execute("VACUUM FULL multi_obs")
+            logger.info("VACUUMed multi_obs in %f seconds" % (time.time() - vacuum_start_time))
             reindex_start_time = time.time()
             cursor.execute("REINDEX TABLE multi_obs")
-            logger.info("Reindexed in %f seconds" % (time.time() - reindex_start_time))
+            logger.info("Reindexed multi_obs in %f seconds" % (time.time() - reindex_start_time))
             cursor.close()
 
             connection.close()
