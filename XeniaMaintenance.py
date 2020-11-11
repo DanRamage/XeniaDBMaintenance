@@ -10,6 +10,7 @@ from xeniaSQLAlchemy import xeniaAlchemy, multi_obs, func
 from xeniaSQLiteAlchemy import multi_obs, platform
 from sqlalchemy import create_engine
 from sqlalchemy import exc
+from sqlalchemy.sql.expression import delete as sa_delete
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 
@@ -47,12 +48,20 @@ def main():
         platform_count = 0
         for platform_rec in platform_recs:
             delete_start_time = time.time()
+            delete_where = "m_date < %s AND platform_handle == %s" % (
+                            default_prune.strftime('%Y-%m-%dT%H:%M:%S'), platform_rec.platform_handle)
+            sa_delete(multi_obs, delete_where)
+            logger.info("Pruned records WHERE %s in %f seconds" % (
+                delete_where, time.time() - delete_start_time))
+            '''
             db_obj.session.query(multi_obs) \
                 .filter(multi_obs.m_date < default_prune.strftime('%Y-%m-%dT%H:%M:%S')) \
                 .filter(multi_obs.platform_handle == platform_rec.platform_handle)\
                 .delete()
+                
             logger.info("Platform: %s pruned records older than: %s in %f seconds" % (
             platform_rec.platform_handle, default_prune, time.time() - delete_start_time))
+            '''
             platform_count += 1
 
         logger.info("Pruned %d platforms in %f seconds" % (platform_count, time.time() - prune_start_time))
