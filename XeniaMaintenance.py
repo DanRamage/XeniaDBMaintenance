@@ -46,14 +46,24 @@ def main():
         platform_recs = db_obj.session.query(platform) \
             .order_by(platform.organization_id).all()
         platform_count = 0
-        for platform_rec in platform_recs:
+        connectionString = "%s://%s:%s@%s/%s" % (db_connectionstring, db_user, db_pwd, db_host, db_name)
+        db_engine = create_engine(connectionString, echo=False)
+        connection = db_engine.raw_connection()
+        connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        cursor = connection.cursor()
+        try:
             delete_start_time = time.time()
-            delete_where = "m_date < %s AND platform_handle == %s" % (
-                            default_prune.strftime('%Y-%m-%dT%H:%M:%S'), platform_rec.platform_handle)
-            sa_delete(multi_obs, delete_where)
+            delete_where = "m_date < '%s'" % (
+                            default_prune.strftime('%Y-%m-%dT%H:%M:%S'))
+            cursor.execute("DELETE FROM multi_obs WHERE %s" % (delete_where))
+        except Exception as e:
+            logger.exception(e)
+        else:
             logger.info("Pruned records WHERE %s in %f seconds" % (
                 delete_where, time.time() - delete_start_time))
-            '''
+        '''        
+        for platform_rec in platform_recs:
+            delete_start_time = time.time()
             db_obj.session.query(multi_obs) \
                 .filter(multi_obs.m_date < default_prune.strftime('%Y-%m-%dT%H:%M:%S')) \
                 .filter(multi_obs.platform_handle == platform_rec.platform_handle)\
@@ -61,10 +71,10 @@ def main():
                 
             logger.info("Platform: %s pruned records older than: %s in %f seconds" % (
             platform_rec.platform_handle, default_prune, time.time() - delete_start_time))
-            '''
             platform_count += 1
-
-        logger.info("Pruned %d platforms in %f seconds" % (platform_count, time.time() - prune_start_time))
+        '''
+        cursor.close()
+        connection.close()
         db_obj.disconnect()
 
         try:
